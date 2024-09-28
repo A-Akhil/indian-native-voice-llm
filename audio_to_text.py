@@ -1,10 +1,9 @@
 import requests
 import base64
 
-def transcribe_audio(file_path, source_language):
-    # Load the WAV audio file and encode it into Base64
-    with open(file_path, "rb") as audio_file:
-        audio_data = base64.b64encode(audio_file.read()).decode("utf-8")
+def transcribe_audio(uploaded_file, source_language):
+    # Read the uploaded file and encode it into Base64
+    audio_data = base64.b64encode(uploaded_file.read()).decode("utf-8")
 
     # Prepare the JSON payload
     payload = {
@@ -15,7 +14,7 @@ def transcribe_audio(file_path, source_language):
             "transcriptionFormat": {
                 "value": "transcript"
             },
-            "audioFormat": "wav",
+            "audioFormat": "wav",  # Make sure the uploaded file is in .wav format
             "samplingRate": 16000,
             "postProcessors": None
         },
@@ -45,6 +44,6 @@ def transcribe_audio(file_path, source_language):
     else:
         return f"Error: {response.status_code}, {response_data}"
 
-# Example usage
-transcription = transcribe_audio("test.wav", "ta")
-print(transcription)
+# # Example usage
+# transcription = transcribe_audio("test.wav", "ta")
+# print(transcription)
