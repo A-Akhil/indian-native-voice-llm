@@ -1,6 +1,9 @@
 import streamlit as st
+from audiorecorder import audiorecorder
 from text_to_text import llama_api
 from audio_to_text import transcribe_audio
+import base64
+import io
 
 # Language mapping
 language_map = {
@@ -24,7 +27,6 @@ st.set_page_config(page_title="🦙💬 Chatbot")
 
 # Sidebar for language selection
 with st.sidebar:
-    # Dropdown to select the source language
     source_language = st.selectbox(
         'Select Source Language', 
         options=list(language_map.keys()), 
@@ -32,10 +34,10 @@ with st.sidebar:
     )
 
 # Store LLM generated responses
-if "messages" not in st.session_state.keys():
+if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?"}]
 
-# Display or clear chat messages
+# Display chat messages
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.write(message["content"])
@@ -50,20 +52,31 @@ def generate_llama2_response(prompt_input):
     response = llama_api(prompt_input, language_code)
     return response
 
-# Upload audio file
-audio_file = st.file_uploader("Upload Audio File", type=["wav"])
+# Audio recording (replaces text input)
+st.title("Voice Chatbot")
 
-if audio_file:
-    # Transcribe the audio file
-    with st.spinner("Transcribing audio..."):
-        transcription = transcribe_audio(audio_file, language_map[source_language])
+# Start audio recording
+audio = audiorecorder("Click to record", "Recording in progress... Click to stop")
+
+if len(audio) > 0:
+    # Play recorded audio in frontend
+    st.audio(audio.export().read())
     
-    # Display the transcription
+    # Convert audio to base64
+    audio_bytes = io.BytesIO()
+    audio.export(audio_bytes, format="wav")
+    audio_base64 = base64.b64encode(audio_bytes.getvalue()).decode("utf-8")
+    
+    # Transcribe audio
+    with st.spinner("Transcribing audio..."):
+        transcription = transcribe_audio(audio_base64, language_map[source_language])
+    
+    # Display transcription
     st.session_state.messages.append({"role": "user", "content": transcription})
     with st.chat_message("user"):
         st.write(transcription)
-
-    # Generate LLaMA2 response using the transcription
+    
+    # Generate LLaMA2 response
     if transcription:
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
@@ -74,26 +87,6 @@ if audio_file:
                     full_response += item
                     placeholder.markdown(full_response)
                 placeholder.markdown(full_response)
-
-        message = {"role": "assistant", "content": full_response}
-        st.session_state.messages.append(message)
-
-# User-provided prompt
-if prompt := st.chat_input():
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.write(prompt)
-
-    # Generate a new response if last message is not from assistant
-    if st.session_state.messages[-1]["role"] != "assistant":
-        with st.chat_message("assistant"):
-            with st.spinner("Thinking..."):
-                response = generate_llama2_response(prompt)
-                placeholder = st.empty()
-                full_response = ''
-                for item in response:
-                    full_response += item
-                    placeholder.markdown(full_response)
-                placeholder.markdown(full_response)
+        
         message = {"role": "assistant", "content": full_response}
         st.session_state.messages.append(message)
