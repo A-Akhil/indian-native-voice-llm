@@ -52,8 +52,6 @@ def generate_llama2_response(prompt_input):
     response = llama_api(prompt_input, language_code)
     return response
 
-# Audio recording (replaces text input)
-st.title("Voice Chatbot")
 
 # Start audio recording
 audio = audiorecorder("Click to record", "Recording in progress... Click to stop")
