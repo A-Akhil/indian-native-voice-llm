@@ -1,9 +1,9 @@
 import requests
 import base64
 
-def transcribe_audio(uploaded_file, source_language):
+def transcribe_audio(audio_data, source_language):
     # Read the uploaded file and encode it into Base64
-    audio_data = base64.b64encode(uploaded_file.read()).decode("utf-8")
+    # audio_data = base64.b64encode(uploaded_file.read()).decode("utf-8")
 
     # Prepare the JSON payload
     payload = {
