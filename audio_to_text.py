@@ -2,7 +2,7 @@ import requests
 import base64
 
 # Load the WAV audio file and encode it into Base64
-with open("test.mp3", "rb") as audio_file:
+with open("test.mp3", "rb") as audio_file:  # Change to .wav if needed
     audio_data = base64.b64encode(audio_file.read()).decode("utf-8")
 
 # Prepare the JSON payload
@@ -34,5 +34,11 @@ response = requests.post(
     json=payload
 )
 
-# Print the response
-print(response.json())
+# Convert response to JSON
+response_data = response.json()
+
+# Extract the transcription output
+transcription_output = response_data['output'][0]['source']
+
+# Print just the output
+# print(transcription_output)
